@@ -1,15 +1,25 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import React, { useState } from "react";
 import { auth } from "../../firebase/firebase.init";
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Register = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const handleRegister = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
+    const terms = e.target.terms.checked;
+
+    console.log(email, password, terms);
 
     setSuccess(false);
 
@@ -33,18 +43,27 @@ const Register = () => {
     // set success or not
     setError("");
 
+    if (!terms) {
+      setError("Please accept our term and condition");
+      return;
+    }
+
     createUserWithEmailAndPassword(auth, email, password)
       .then((result) => {
         console.log(result.user);
         setSuccess(true);
         e.target.reset();
+        // send Email verification
+        sendEmailVerification;
       })
       .catch((error) => {
         console.log(error.message);
         setError(error.message);
       });
-
-    console.log(email, password);
+  };
+  const handlePasswordOpen = (e) => {
+    e.preventDefault();
+    setPasswordOpen(!passwordOpen);
   };
   return (
     <div className="hero bg-base-200 min-h-screen">
@@ -63,13 +82,30 @@ const Register = () => {
                   placeholder="Email"
                   name="email"
                 />
+
                 <label className="label">Password</label>
-                <input
-                  type="password"
-                  className="input"
-                  placeholder="Password"
-                  name="password"
-                />
+                <div className="relative">
+                  <input
+                    type={passwordOpen ? "text" : "password"}
+                    className="input"
+                    placeholder="Password"
+                    name="password"
+                  />
+                  <button
+                    onClick={handlePasswordOpen}
+                    className="absolute right-5 bottom-3"
+                  >
+                    {passwordOpen ? (
+                      <FaEyeSlash size={16} />
+                    ) : (
+                      <FaEye size={16} />
+                    )}
+                  </button>
+                </div>
+                <label className="label">
+                  <input name="terms" type="checkbox" className="checkbox" />
+                  Accept our terms and condition
+                </label>
                 <div>
                   <a className="link link-hover">Forgot password?</a>
                 </div>
@@ -84,6 +120,12 @@ const Register = () => {
                 </p>
               )}
             </form>
+            <p className="text-center">
+              Already have an account? Please{" "}
+              <Link to="/login">
+                <span className="text-blue-700 font-bold">Login</span>
+              </Link>
+            </p>
           </div>
         </div>
       </div>
